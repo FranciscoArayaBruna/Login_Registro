@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LoginActivity extends Activity {
 
@@ -34,14 +36,9 @@ public class LoginActivity extends Activity {
             }
         });
 
-        // Recuperar datos de usuario almacenados en SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
-        String savedUsername = sharedPreferences.getString("username", "");
-        String savedPassword = sharedPreferences.getString("password", "");
-
-        // Rellenar los EditText con los datos recuperados
-        editTextUsername.setText(savedUsername);
-        editTextPassword.setText(savedPassword);
+        // Borrar cualquier texto existente en los EditText
+        editTextUsername.setText(""); // Establecer el texto en una cadena vacía
+        editTextPassword.setText(""); // Establecer el texto en una cadena vacía
     }
 
     public void login(View view) {
@@ -51,15 +48,21 @@ public class LoginActivity extends Activity {
         if (isValidUser(username, password)) {
             Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Inicio de sesión fallido", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Inicio de sesión fallido", Toast.LENGTH_SHORT).show(); // Aquí debes usar Toast.LENGTH_SHORT
         }
     }
 
     private boolean isValidUser(String username, String password) {
         SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
-        String savedUsername = sharedPreferences.getString("username", "");
-        String savedPassword = sharedPreferences.getString("password", "");
+        Set<String> userSet = sharedPreferences.getStringSet("users", new HashSet<String>());
 
-        return username.equals(savedUsername) && password.equals(savedPassword);
+        if (userSet.contains(username)) {
+            String savedPassword = sharedPreferences.getString(username, "");
+            return password.equals(savedPassword);
+        }
+
+        return false;
     }
 }
+
+

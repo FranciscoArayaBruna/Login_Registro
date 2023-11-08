@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class RegistoUsuario extends Activity {
 
@@ -28,11 +31,18 @@ public class RegistoUsuario extends Activity {
         String password = editTextPassword.getText().toString();
 
         if (isValidInput(username, password)) {
-            // Guardar los datos en SharedPreferences
+            // Recuperar la lista de usuarios registrados
             SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+            Set<String> userSet = sharedPreferences.getStringSet("users", new HashSet<String>());
+            ArrayList<String> userList = new ArrayList<>(userSet);
+
+            // Agregar el nuevo usuario a la lista
+            userList.add(username);
+
+            // Guardar la lista actualizada en SharedPreferences
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("username", username);
-            editor.putString("password", password);
+            editor.putStringSet("users", new HashSet<>(userList));
+            editor.putString(username, password);  // También puedes guardar la contraseña asociada con el nombre de usuario
             editor.apply();
 
             Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
@@ -46,6 +56,26 @@ public class RegistoUsuario extends Activity {
     }
 
     private boolean isValidInput(String username, String password) {
-        return !username.isEmpty() && !password.isEmpty();
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Por favor, ingrese un nombre de usuario y una contraseña válidos", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (password.length() < 6) {
+            Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Verificar si el usuario ya existe
+        SharedPreferences sharedPreferences = getSharedPreferences("UserData", Context.MODE_PRIVATE);
+        Set<String> userSet = sharedPreferences.getStringSet("users", new HashSet<String>());
+        if (userSet.contains(username)) {
+            Toast.makeText(this, "Este usuario ya está registrado", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
+
 }
+
